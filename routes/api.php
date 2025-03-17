@@ -19,6 +19,6 @@ Route::controller(UserController::class)->name('user.')->middleware('auth:sanctu
 });
 
 Route::apiResource('todos', TodoController::class)->middleware('auth:sanctum');
-Route::controller(TodoController::class)->name('todos.')->group(function () {
-    Route::post('todos/restore/{id}', 'restore')->name('restore')->middleware('auth:sanctum');
+Route::controller(TodoController::class)->name('todos.')->middleware('auth:sanctum')->group(function () {
+    Route::post('todos/restore/{id}', 'restore')->name('restore');
 });

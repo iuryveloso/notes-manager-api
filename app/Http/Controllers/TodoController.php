@@ -13,7 +13,7 @@ class TodoController extends Controller
      */
     public function index(Request $request)
     {
-        $todos = Todo::where('user_id', $request->user()->id)->get();
+        $todos = Todo::select('id', 'title', 'body', 'color', 'favorited')->where('user_id', $request->user()->id)->get();
         return $todos;
     }
 
@@ -22,7 +22,7 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = [ 
+        $messages = [
             'title.required' => 'O Título é obrigatório!',
             'title.max' => 'O Título deve ter menos de 255 caracteres!',
             'body.required' => 'O Corpo do texto é obrigatório!',
@@ -40,7 +40,7 @@ class TodoController extends Controller
         ], $messages);
 
         $request->user()->todos()->create($fields);
-        return ['messsage' => 'Nota salva!'];
+        return ['message' => 'Nota salva!'];
     }
 
     /**
@@ -48,7 +48,13 @@ class TodoController extends Controller
      */
     public function show(Todo $todo)
     {
-        return $todo;
+        return [
+            'id' => $todo->id,
+            'title' => $todo->title,
+            'body' => $todo->body,
+            'color' => $todo->color,
+            'favorited' => $todo->favorited
+        ];
     }
 
     /**
@@ -58,7 +64,7 @@ class TodoController extends Controller
     {
         Gate::authorize('modify', $todo);
 
-        $messages = [ 
+        $messages = [
             'title.required' => 'O Título é obrigatório!',
             'body.required' => 'O Corpo do texto é obrigatório!',
             'color.required' => 'A Cor da nota é obrigatória!',
@@ -73,7 +79,7 @@ class TodoController extends Controller
             'favorited' => 'boolean|required'
         ], $messages);
         $todo->update($fields);
-        return ['messsage' => 'Nota atualizada!'];
+        return ['message' => 'Nota atualizada!'];
     }
 
     /**
@@ -83,7 +89,7 @@ class TodoController extends Controller
     {
         Gate::authorize('modify', $todo);
         $todo->delete();
-        return ['messsage' => 'Nota removida!'];
+        return ['message' => 'Nota removida!'];
     }
 
     /**
@@ -94,6 +100,6 @@ class TodoController extends Controller
         $todo = Todo::withTrashed()->find($id);
         Gate::authorize('modify', $todo);
         $todo->restore();
-        return ['messsage' => 'Nota restaurada!'];
+        return ['message' => 'Nota restaurada!'];
     }
 }
