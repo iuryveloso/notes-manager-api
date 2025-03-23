@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Uid\Ulid;
 
 class AuthController extends Controller
 {
@@ -56,10 +58,6 @@ class AuthController extends Controller
             'email.max' => 'O Email deve ter menos de 255 caracteres!',
             'email.email' => 'O Email deve ser válido!',
             'email.unique' => 'Este Email Já existe!',
-            'file.required' => 'O Avatar de perfil é obrigatório!',
-            'file.file' => 'O Avatar de perfil deve ser um arquivo válido!',
-            'file.mimes' => 'O Avatar de perfil deve está somente em .png ou .jpg!',
-            'file.max' => 'O Avatar de perfil deve ter menos de 10MB!',
             'password.required' => 'A Senha é obrigatória!',
             'password.confirmed' => 'A Senha e Confirmação de Senha devem ser iguais!',
         ];
@@ -67,19 +65,20 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|max:255|email|unique:users',
-            'file' => 'required|file|mimes:png,jpg|max:10240',
             'password' => 'required|confirmed'
         ], $messages);
 
         // http://localhost:8000/storage/uploads/{filename}
-        $request->file('file')->storePublicly('uploads', 'public');
-        $file_name = $request->file('file')->hashName();
+        $file = Storage::disk('public')->get('user.svg');
+        $ulid = new Ulid();
+        $fileName = $ulid . '.svg';
+        Storage::disk('public')->put('/uploads/' . $fileName, $file);
 
         $user = new User;
 
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->avatar = $file_name;
+        $user->avatar = $fileName;
         $user->password = $request->password;
 
         $user->save();
