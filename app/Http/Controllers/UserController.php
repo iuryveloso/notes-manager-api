@@ -13,7 +13,13 @@ class UserController extends Controller
      */
     public function show(Request $request)
     {
-        return $request->user();
+        $user = $request->user();
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => $user->avatar,
+        ];
     }
 
     /**
@@ -21,7 +27,7 @@ class UserController extends Controller
      */
     public function update(Request $request)
     {
-        $messages = [ 
+        $messages = [
             'name.required' => 'O Nome é obrigatório!',
             'name.max' => 'O Nome deve ter menos de 255 caracteres!',
             'email.required' => 'O Email é obrigatório!',
@@ -54,7 +60,7 @@ class UserController extends Controller
      */
     public function updateAvatar(Request $request)
     {
-        $messages = [ 
+        $messages = [
             'file.required' => 'O Avatar de perfil é obrigatório!',
             'file.file' => 'O Avatar de perfil deve ser um arquivo válido!',
             'file.mimes' => 'O Avatar de perfil deve está somente em .png ou .jpg!',
@@ -85,12 +91,14 @@ class UserController extends Controller
     {
 
         if (!Hash::check($request->old_password, $request->user()->password)) {
-            return [
-                'message' => 'A Senha está incorreta!'
-            ];
+            return response([
+                'errors' => [
+                    'old_password' => ['As credenciais estão incorretas!']
+                ]
+            ], 422)->header('Content-Type', 'application/json');
         }
 
-        $messages = [ 
+        $messages = [
             'password.required' => 'A Senha é obrigatória!',
             'password.confirmed' => 'A Senha e Confirmação de Senha devem ser iguais!',
         ];

@@ -9,11 +9,47 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
+     * Login with a user account.
+     */
+    public function login(Request $request)
+    {
+        $messages = [
+            'email.required' => 'O Email é obrigatório!',
+            'email.max' => 'O Email deve ter menos de 255 caracteres!',
+            'email.email' => 'O Email deve ser válido!',
+            'email.exists' => 'Usuario não cadstrado!',
+            'password.required' => 'A Senha é obrigatória!',
+            'password.confirmed' => 'A Senha e Confirmação de Senha devem ser iguais!',
+        ];
+
+        $request->validate([
+            'email' => 'required|max:255|email|exists:users',
+            'password' => 'required',
+        ], $messages);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response([
+                'errors' => [
+                    'password' => ['As credenciais estão incorretas!']
+                ]
+            ], 422)->header('Content-Type', 'application/json');
+        }
+
+        $token = $user->createToken($user->name);
+
+        return [
+            'token' => $token->plainTextToken
+        ];
+    }
+
+    /**
      * Register a user.
      */
     public function register(Request $request)
     {
-        $messages = [ 
+        $messages = [
             'name.required' => 'O Nome é obrigatório!',
             'name.max' => 'O Nome deve ter menos de 255 caracteres!',
             'email.required' => 'O Email é obrigatório!',
@@ -49,40 +85,6 @@ class AuthController extends Controller
         $user->save();
 
         $token = $user->createToken($request->name);
-
-        return [
-            'token' => $token->plainTextToken
-        ];
-    }
-
-    /**
-     * Login with a user account.
-     */
-    public function login(Request $request)
-    {
-        $messages = [ 
-            'email.required' => 'O Email é obrigatório!',
-            'email.max' => 'O Email deve ter menos de 255 caracteres!',
-            'email.email' => 'O Email deve ser válido!',
-            'email.unique' => 'Este Email Já existe!',
-            'password.required' => 'A Senha é obrigatória!',
-            'password.confirmed' => 'A Senha e Confirmação de Senha devem ser iguais!',
-        ];
-
-        $request->validate([
-            'email' => 'string|required|max:255|email|exists:users',
-            'password' => 'required',
-        ], $messages);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return [
-                'message' => 'As credenciais estão incorretas!'
-            ];
-        }
-
-        $token = $user->createToken($user->name);
 
         return [
             'token' => $token->plainTextToken

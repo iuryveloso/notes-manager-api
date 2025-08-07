@@ -13,7 +13,7 @@ class NoteController extends Controller
      */
     public function index(Request $request)
     {
-        $notes = Note::where('user_id', $request->user()->id)->get();
+        $notes = Note::select('id', 'title', 'body', 'color', 'favorited')->where('user_id', $request->user()->id)->get();
         return $notes;
     }
 
@@ -22,7 +22,7 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        $messages = [ 
+        $messages = [
             'title.required' => 'O Título é obrigatório!',
             'title.max' => 'O Título deve ter menos de 255 caracteres!',
             'body.required' => 'O Corpo do texto é obrigatório!',
@@ -40,7 +40,7 @@ class NoteController extends Controller
         ], $messages);
 
         $request->user()->notes()->create($fields);
-        return ['messsage' => 'Nota salva!'];
+        return ['message' => 'Nota salva!'];
     }
 
     /**
@@ -48,7 +48,13 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
-        return $note;
+        return [
+            'id' => $note->id,
+            'title' => $note->title,
+            'body' => $note->body,
+            'color' => $note->color,
+            'favorited' => $note->favorited
+        ];
     }
 
     /**
@@ -58,7 +64,7 @@ class NoteController extends Controller
     {
         Gate::authorize('modify', $note);
 
-        $messages = [ 
+        $messages = [
             'title.required' => 'O Título é obrigatório!',
             'body.required' => 'O Corpo do texto é obrigatório!',
             'color.required' => 'A Cor da nota é obrigatória!',
@@ -73,7 +79,7 @@ class NoteController extends Controller
             'favorited' => 'boolean|required'
         ], $messages);
         $note->update($fields);
-        return ['messsage' => 'Nota atualizada!'];
+        return ['message' => 'Nota atualizada!'];
     }
 
     /**
@@ -83,7 +89,7 @@ class NoteController extends Controller
     {
         Gate::authorize('modify', $note);
         $note->delete();
-        return ['messsage' => 'Nota removida!'];
+        return ['message' => 'Nota removida!'];
     }
 
     /**
@@ -94,6 +100,6 @@ class NoteController extends Controller
         $note = Note::withTrashed()->find($id);
         Gate::authorize('modify', $note);
         $note->restore();
-        return ['messsage' => 'Nota restaurada!'];
+        return ['message' => 'Nota restaurada!'];
     }
 }
