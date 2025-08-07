@@ -38,12 +38,12 @@ class UserController extends Controller
 
         if ($request->user()->email !== $request->email) {
             $fields = $request->validate([
-                'name' => 'string|required|max:255',
-                'email' => 'string|required|max:255|email|unique:users',
+                'name' => 'required|max:255',
+                'email' => 'required|max:255|email|unique:users',
             ], $messages);
         } else {
             $fields = $request->validate([
-                'name' => 'string|required|max:255',
+                'name' => 'required|max:255',
             ], $messages);
         }
 
@@ -60,16 +60,25 @@ class UserController extends Controller
      */
     public function updateAvatar(Request $request)
     {
+        $mime = $request->file->getMimeType();
+        if (strcmp($mime, 'image/png') !== 0 && strcmp($mime, 'image/jpeg') !== 0 && strcmp($mime, 'image/svg+xml') !== 0) {
+            return response([
+                'errors' => [
+                    'file' => ['O Avatar de perfil deve ser em PNG, JPEG ou SVG!']
+                ]
+            ], 422)->header('Content-Type', 'application/json');
+        }
+
         $messages = [
             'file.required' => 'O Avatar de perfil é obrigatório!',
             'file.file' => 'O Avatar de perfil deve ser um arquivo válido!',
-            'file.mimes' => 'O Avatar de perfil deve está somente em .png ou .jpg!',
-            'file.max' => 'O Avatar de perfil deve ter menos de 10MB!',
+            'file.max' => 'O Avatar de perfil deve ter menos de 2MB!',
         ];
 
         $request->validate([
-            'file' => 'required|file|mimes:png,jpg|max:10240',
+            'file' => 'required|file|max:2048',
         ], $messages);
+
 
         // http://localhost:8000/storage/uploads/{filename}
         $request->file('file')->storePublicly('uploads', 'public');
