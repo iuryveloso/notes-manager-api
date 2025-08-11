@@ -71,7 +71,7 @@ class AuthController extends Controller
         // http://localhost:8000/storage/uploads/{filename}
         $file = Storage::disk('public')->get('user.png');
         $ulid = new Ulid();
-        $fileName = $ulid . '.svg';
+        $fileName = $ulid . '.png';
         Storage::disk('public')->put('/uploads/' . $fileName, $file);
 
         $user = new User;
